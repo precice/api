@@ -65,6 +65,7 @@ jobs:
           name: core-${{ matrix.version }}
           overwrite: true
           path: precice/docs/source-code-documentation/html/*
+          if-no-files-found: error
 
       - name: Configure
         working-directory: precice
@@ -100,7 +101,8 @@ jobs:
         with:
           name: python-${{ matrix.version }}
           overwrite: true
-          path: python_build/*
+          path: python-build/*
+          if-no-files-found: error
 
 
   build:
