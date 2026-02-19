@@ -1,0 +1,161 @@
+name: Build and deploy the website
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: website-deploy
+  cancel-in-progress: true # wait
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  CMAKE_GENERATOR: Ninja
+
+jobs:
+  pre-commit:
+    name: pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+         python-version: '3.x'
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  test-build:
+    needs: pre-commit
+    runs-on: ubuntu-latest
+    container: precice/ci-fedora:latest
+    steps:
+      - name: Checkout website
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history required to determine last edit
+      - name: Install hugo
+        run: dnf install -y hugo
+      - name: Test build
+        run: hugo
+
+  build-documentation:
+    needs: test-build
+    runs-on: ubuntu-latest
+    container: precice/ci-fedora:latest
+    strategy:
+      matrix:
+        include:
+          - version: latest
+            branch: main
+          - version: develop
+            branch: develop
+    steps:
+      - name: Install tools
+        run: dnf install -y doxygen plantuml
+      - name: Fetch precice
+        uses: actions/checkout@v4
+        with:
+          repository: precice/precice
+          ref: ${{ matrix.branch }}
+          path: precice
+      - name: Build doxygen
+        run: doxygen
+        working-directory: precice
+      - name: Upload core docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-${{ matrix.version }}
+          overwrite: true
+          path: precice/docs/source-code-documentation/html/*
+
+      - name: Configure
+        working-directory: precice
+        run: cmake --preset=production
+      - name: Set and test env
+        run: |
+          echo "LD_LIBRARY_PATH=$(readlink -f precice/build)" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(readlink -f precice/build)" >> $GITHUB_ENV
+          pkg-config --libs --cflags libprecice
+      - name: Build precice
+        run: cmake --build . --target precice
+        working-directory: precice/build
+
+      - name: Fetch python-bindings
+        uses: actions/checkout@v4
+        with:
+          repository: precice/python-bindings
+          ref: add-docs-rendering # ${{ matrix.branch }}
+          path: python-bindings
+      - name: Setup venv
+        run: |
+          python3 -m venv venv
+          ./venv/bin/pip install sphinx myst_parser
+      - name: Install python-bindings
+        run: ./venv/bin/pip install ./python-bindings/
+      - name: Test installation
+        run: ./venv/bin/python -c "import precice"
+      - name: Build documentation
+        run: venv/bin/sphinx-build -M singlehtml python-bindings/docs python-build
+      - name: Upload python docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-${{ matrix.version }}
+          overwrite: true
+          path: python_build/*
+
+
+  build:
+    needs: build-documentation
+    runs-on: ubuntu-latest
+    container: precice/ci-fedora:latest
+    steps:
+      - name: Checkout website
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history required to determine last edit
+      - name: Install hugo
+        run: dnf install -y hugo
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: core-latest
+          path: imported/core/latest
+      - uses: actions/download-artifact@v5
+        with:
+          name: core-develop
+          path: imported/core/develop
+      - uses: actions/download-artifact@v5
+        with:
+          name: python-latest
+          path: imported/python/latest
+      - uses: actions/download-artifact@v5
+        with:
+          name: python-develop
+          path: imported/python/develop
+
+      - name: Build website
+        run: hugo --minify 
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
