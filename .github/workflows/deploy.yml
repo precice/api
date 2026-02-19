@@ -36,6 +36,9 @@ jobs:
     needs: test-build
     runs-on: ubuntu-latest
     container: precice/ci-fedora:latest
+    defaults:
+      run:
+        shell: "bash --login -eo pipefail {0}"
     strategy:
       matrix:
         include:
