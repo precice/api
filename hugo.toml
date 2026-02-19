@@ -1,2 +1,8 @@
 baseURL = 'https://api.precice.org/'
 languageCode = 'en-us'
+
+disableKinds = ["taxonomy", "term", "RSS", "sitemap"]
+
+[cascade]
+  type = "redirect"
+  layout = "redirect"

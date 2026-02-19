@@ -1,3 +1,3 @@
 ---
-redirectTo: https://precice.org/couple-your-code-api.html
+redirect: https://precice.org/couple-your-code-api.html
 ---
