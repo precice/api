@@ -6,3 +6,14 @@ disableKinds = ["taxonomy", "term", "RSS", "sitemap"]
 [cascade]
   type = "redirect"
   layout = "redirect"
+
+[module]
+  [[module.mounts]]
+    source = 'static'
+    target = 'static'
+  [[module.mounts]]
+    source = 'imported/cpp/latest'
+    target = 'static/cpp/latest'
+  [[module.mounts]]
+    source = 'imported/cpp/latest'
+    target = 'static/cpp/develop'
