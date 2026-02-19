@@ -55,6 +55,7 @@ jobs:
           repository: precice/precice
           ref: ${{ matrix.branch }}
           path: precice
+          fetch-depth: 0
       - name: Build doxygen
         run: doxygen
         working-directory: precice
