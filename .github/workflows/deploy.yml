@@ -120,11 +120,11 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: core-latest
-          path: imported/core/latest
+          path: imported/cpp/latest
       - uses: actions/download-artifact@v5
         with:
           name: core-develop
-          path: imported/core/develop
+          path: imported/cpp/develop
       - uses: actions/download-artifact@v5
         with:
           name: python-latest

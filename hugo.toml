@@ -15,5 +15,11 @@ disableKinds = ["taxonomy", "term", "RSS", "sitemap"]
     source = 'imported/cpp/latest'
     target = 'static/cpp/latest'
   [[module.mounts]]
-    source = 'imported/cpp/latest'
+    source = 'imported/cpp/develop'
     target = 'static/cpp/develop'
+  [[module.mounts]]
+    source = 'imported/python/latest'
+    target = 'static/python/latest'
+  [[module.mounts]]
+    source = 'imported/python/develop'
+    target = 'static/python/develop'
