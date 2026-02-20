@@ -101,7 +101,7 @@ jobs:
         with:
           name: python-${{ matrix.version }}
           overwrite: true
-          path: python-build/*
+          path: python-build/singlehtml/*
           if-no-files-found: error
 
 
