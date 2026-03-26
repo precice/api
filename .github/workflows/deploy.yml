@@ -89,7 +89,7 @@ jobs:
       - name: Setup venv
         run: |
           python3 -m venv venv
-          ./venv/bin/pip install sphinx myst_parser
+          ./venv/bin/pip install sphinx myst_parser sphinx-rtd-theme
       - name: Install python-bindings
         run: ./venv/bin/pip install ./python-bindings/
       - name: Test installation
