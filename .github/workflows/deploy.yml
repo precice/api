@@ -43,9 +43,11 @@ jobs:
       matrix:
         include:
           - version: latest
-            branch: main
+            corebranch: main
+            pybranch: master
           - version: develop
-            branch: develop
+            corebranch: develop
+            pybranch: develop
     steps:
       - name: Install tools
         run: dnf install -y doxygen plantuml
@@ -53,7 +55,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: precice/precice
-          ref: ${{ matrix.branch }}
+          ref: ${{ matrix.corebranch }}
           path: precice
           fetch-depth: 0
       - name: Build doxygen
@@ -84,7 +86,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: precice/python-bindings
-          ref: add-docs-rendering # ${{ matrix.branch }}
+          ref: ${{ matrix.pybranch }}
           path: python-bindings
       - name: Setup venv
         run: |
